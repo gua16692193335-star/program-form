@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>节目信息管理后台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+        body { background-color: #f5f7fa; color: #333; line-height: 1.6; padding: 20px; }
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .admin-header h1 { font-size: 24px; font-weight: 600; }
+        .stats { display: flex; gap: 20px; flex-wrap: wrap; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 28px; font-weight: 700; display: block; }
+        .stat-label { font-size: 13px; opacity: 0.85; }
+        .admin-content { padding: 30px; }
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .filter-group { display: flex; align-items: center; gap: 8px; }
+        .filter-group label { font-weight: 500; color: #2c3e50; font-size: 14px; }
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #dce1e6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        th {
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; font-size: 14px; }
+        tr:hover { background-color: #f8f9fa; }
+        .no-data { text-align: center; padding: 40px; color: #95a5a6; font-size: 16px; }
+        .btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+            margin-right: 10px;
+        }
+        .btn-export { background-color: #27ae60; color: white; }
+        .btn-export:hover { background-color: #219653; }
+        .btn-clear { background-color: #e74c3c; color: white; }
+        .btn-clear:hover { background-color: #c0392b; }
+        .btn-refresh { background-color: #3498db; color: white; }
+        .btn-refresh:hover { background-color: #2980b9; }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            background: #e8f4fd;
+            color: #2980b9;
+        }
+        .tag-mic-yes { background: #d5f5e3; color: #27ae60; }
+        .tag-mic-no { background: #f0f0f0; color: #7f8c8d; }
+
+        @media (max-width: 768px) {
+            .admin-header { flex-direction: column; align-items: flex-start; }
+            table { display: block; overflow-x: auto; }
+            th, td { padding: 10px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast"></div>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>📊 节目信息管理后台</h1>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="total-count">0</span>
+                    <span class="stat-label">总提交数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="team-count">0</span>
+                    <span class="stat-label">团队数量</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="mic-yes-count">0</span>
+                    <span class="stat-label">需要话筒</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="last-update">-</span>
+                    <span class="stat-label">最后更新</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filter-type">节目形式：</label>
+                    <select id="filter-type">
+                        <option value="">全部</option>
+                        <option value="歌唱">歌唱类</option>
+                        <option value="舞蹈">舞蹈类</option>
+                        <option value="语言">语言类</option>
+                        <option value="乐器">乐器类</option>
+                        <option value="武术">武术类</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-mic">是否需要话筒：</label>
+                    <select id="filter-mic">
+                        <option value="">全部</option>
+                        <option value="是">是</option>
+                        <option value="否">否</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="search">搜索：</label>
+                    <input type="text" id="search" placeholder="团队名称/节目名称/联系人">
+                </div>
+            </div>
+
+            <button class="btn btn-refresh" onclick="loadData()">🔄 刷新数据</button>
+            <button class="btn btn-export" onclick="exportToCSV()">📥 导出CSV</button>
+            <button class="btn btn-clear" onclick="clearAllData()">🗑️ 清空全部</button>
+
+            <div id="table-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEfM8-gD7Wg7jA4QOn0pbEO_s5iRc9kB0RxkGmiIoHMyU8mRRriTBUtiSCcZtWvv6E/exec';
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        async function readData() {
+            try {
+                const res = await fetch(SCRIPT_URL + '?action=read');
+                const json = await res.json();
+                // GAS返回格式: {programs: [...]} 或 {error: ...}
+                if (json.programs) {
+                    return json.programs;
+                }
+                if (json.error) {
+                    console.error('GAS错误:', json.error);
+                }
+                return [];
+            } catch (e) {
+                console.error('读取失败:', e);
+                return [];
+            }
+        }
+
+        async function deleteRecord(index) {
+            if (!confirm('确定要删除这条记录吗？')) return;
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', index: index })
+                });
+                showToast('已删除');
+                loadData();
+            } catch (e) {
+                console.error('删除失败:', e);
+                alert('删除失败，请重试');
+            }
+        }
+
+        async function loadData() {
+            const data = await readData();
+            // GAS返回的是数组格式
+            const programs = Array.isArray(data) ? data : (data.programs || []);
+            const lastUpdate = programs.length > 0 ? programs[programs.length - 1].submitTime : null;
+            renderTable(programs, lastUpdate);
+        }
+
+        function renderTable(programs, lastUpdated) {
+            // 更新统计（兼容中英文key）
+            const teamNames = programs.map(p => p['团队名称'] || p.teamName || '');
+            document.getElementById('total-count').textContent = programs.length;
+            document.getElementById('team-count').textContent = [...new Set(teamNames)].length;
+            const micYes = programs.filter(p => (p['是否需要话筒'] || p.needMicrophone || '') === '是').length;
+            document.getElementById('mic-yes-count').textContent = micYes;
+            const lastTs = programs.length > 0 ? (programs[programs.length - 1]['提交时间'] || programs[programs.length - 1].submitTime) : null;
+            document.getElementById('last-update').textContent = lastTs ? new Date(lastTs).toLocaleString('zh-CN') : '-';
+
+            const container = document.getElementById('table-container');
+
+            if (programs.length === 0) {
+                container.innerHTML = '<div class="no-data">暂无提交的节目信息<br><br>💡 将填写链接分享给用户后，提交的数据会显示在这里</div>';
+                return;
+            }
+
+            let html = `
+                <table id="program-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>提交时间</th>
+                            <th>团队名称</th>
+                            <th>节目形式</th>
+                            <th>节目名称</th>
+                            <th>时长</th>
+                            <th>人数</th>
+                            <th>话筒</th>
+                            <th>指导老师</th>
+                            <th>联系人</th>
+                            <th>联系电话</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${programs.map((p, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${p['提交时间'] || p.submitTime || ''}</td>
+                                <td>${p['团队名称'] || p.teamName || ''}</td>
+                                <td><span class="tag">${p['节目形式'] || p.programType || ''}</span></td>
+                                <td>${p['节目名称'] || p.programName || ''}</td>
+                                <td>${p['节目时长'] || p.programDuration || ''}</td>
+                                <td>${(p['演出人数'] || p.performerCount || '')}人</td>
+                                <td><span class="${(p['是否需要话筒'] || p.needMicrophone || '') === '是' ? 'tag-mic-yes' : 'tag-mic-no'}">${p['是否需要话筒'] || p.needMicrophone || ''}</span></td>
+                                <td>${p['指导老师'] || p.instructor || '-'}</td>
+                                <td>${p['联系人'] || p.contactPerson || ''}</td>
+                                <td>${p['联系电话'] || p.contactPhone || ''}</td>
+                                <td><button onclick="deleteRecord(${i})" style="background:none;border:none;color:#e74c3c;cursor:pointer;font-size:13px;">删除</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+        }
+
+        async function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear' })
+                });
+                showToast('已清空');
+                loadData();
+            } catch (e) {
+                console.error('清空失败:', e);
+                alert('清空失败，请重试');
+            }
+        }
+
+        function exportToCSV() {
+            const rows = document.querySelectorAll('#program-table tbody tr');
+            if (rows.length === 0) { alert('暂无数据可导出！'); return; }
+
+            const headers = ['序号','提交时间','团队名称','节目形式','节目名称','节目时长','演出人数','是否需要话筒','指导老师','联系人','联系电话'];
+            let csv = [headers.join(',')];
+
+            rows.forEach((row, i) => {
+                const cells = row.querySelectorAll('td');
+                csv.push([
+                    i + 1,
+                    `"${cells[1].textContent}"`,
+                    `"${cells[2].textContent}"`,
+                    `"${cells[3].textContent.trim()}"`,
+                    `"${cells[4].textContent}"`,
+                    `"${cells[5].textContent}"`,
+                    cells[6].textContent.replace('人',''),
+                    `"${cells[7].textContent.trim()}"`,
+                    `"${cells[8].textContent}"`,
+                    `"${cells[9].textContent}"`,
+                    `"${cells[10].textContent}"`
+                ].join(','));
+            });
+
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.download = '节目信息_' + new Date().toISOString().slice(0,10) + '.csv';
+            a.href = URL.createObjectURL(blob);
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('导出成功！');
+        }
+
+        // 筛选和搜索
+        document.getElementById('filter-type').addEventListener('change', filterTable);
+        document.getElementById('filter-mic').addEventListener('change', filterTable);
+        document.getElementById('search').addEventListener('input', filterTable);
+
+        function filterTable() {
+            const typeFilter = document.getElementById('filter-type').value.toLowerCase();
+            const micFilter = document.getElementById('filter-mic').value;
+            const searchText = document.getElementById('search').value.toLowerCase();
+            const table = document.getElementById('program-table');
+            if (!table) return;
+
+            const rows = table.getElementsByTagName('tr');
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (!cells.length) continue;
+
+                const typeMatch = !typeFilter || cells[3]?.textContent?.toLowerCase().includes(typeFilter);
+                const micMatch = !micFilter || cells[7]?.textContent?.trim() === micFilter;
+                const searchMatch = !searchText ||
+                    cells[2]?.textContent?.toLowerCase().includes(searchText) ||
+                    cells[4]?.textContent?.toLowerCase().includes(searchText) ||
+                    cells[9]?.textContent?.toLowerCase().includes(searchText);
+
+                rows[i].style.display = (typeMatch && micMatch && searchMatch) ? '' : 'none';
+            }
+        }
+
+        // 页面加载时自动获取数据
+        loadData();
+    </script>
+</body>
+</html>
