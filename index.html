@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>节目信息登记表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+        .header p { opacity: 0.85; font-size: 15px; }
+        .form-container { padding: 30px; }
+        .form-group { margin-bottom: 22px; }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #2c3e50; font-size: 15px; }
+        label span { color: #e74c3c; margin-left: 4px; }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #dce1e6;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4b6cb7;
+            box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.1);
+        }
+        .radio-group { display: flex; gap: 20px; margin-top: 5px; }
+        .radio-option { display: flex; align-items: center; }
+        .radio-option input { width: auto; margin-right: 8px; }
+        .submit-btn {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(75, 108, 183, 0.3); }
+        .success-container {
+            display: none;
+            padding: 60px 30px;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        .success-icon { font-size: 80px; color: #2ecc71; margin-bottom: 20px; }
+        .success-container h2 { color: #2c3e50; margin-bottom: 15px; font-size: 28px; }
+        .success-container p { color: #7f8c8d; font-size: 16px; max-width: 500px; margin: 0 auto; }
+        .required-note { font-size: 13px; color: #95a5a6; margin-top: 5px; }
+        @media (max-width: 600px) {
+            .container { border-radius: 0; }
+            .form-container { padding: 20px; }
+            .header { padding: 20px; }
+            .header h1 { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>节目信息登记表</h1>
+            <p>请填写以下节目相关信息，带 <span style="color:#ff6b6b">*</span> 的为必填项</p>
+        </div>
+
+        <div class="form-container" id="form-container">
+            <form id="program-form">
+                <div class="form-group">
+                    <label for="team-name">团队名称 <span>*</span></label>
+                    <input type="text" id="team-name" name="team-name" placeholder="请输入团队名称" required>
+                </div>
+                <div class="form-group">
+                    <label for="program-type">节目形式 <span>*</span></label>
+                    <select id="program-type" name="program-type" required>
+                        <option value="">请选择节目形式</option>
+                        <option value="歌唱">歌唱类</option>
+                        <option value="舞蹈">舞蹈类</option>
+                        <option value="语言">语言类（小品/相声/朗诵）</option>
+                        <option value="乐器">乐器演奏类</option>
+                        <option value="武术">武术/体操类</option>
+                        <option value="其他">其他形式</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="program-name">节目名称 <span>*</span></label>
+                    <input type="text" id="program-name" name="program-name" placeholder="请输入节目名称" required>
+                </div>
+                <div class="form-group">
+                    <label for="program-duration">节目时长 <span>*</span></label>
+                    <input type="text" id="program-duration" name="program-duration" placeholder="例如：5分钟 或 8-10分钟" required>
+                    <div class="required-note">请填写预估的节目表演时长</div>
+                </div>
+                <div class="form-group">
+                    <label for="performer-count">演出人数 <span>*</span></label>
+                    <input type="number" id="performer-count" name="performer-count" min="1" max="100" placeholder="请输入演出人数" required>
+                </div>
+                <div class="form-group">
+                    <label>是否需要话筒 <span>*</span></label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="mic-yes" name="need-microphone" value="是" required>
+                            <label for="mic-yes" style="margin-bottom:0;font-weight:normal;">是</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="mic-no" name="need-microphone" value="否">
+                            <label for="mic-no" style="margin-bottom:0;font-weight:normal;">否</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="instructor">指导老师</label>
+                    <input type="text" id="instructor" name="instructor" placeholder="请输入指导老师姓名（选填）">
+                </div>
+                <div class="form-group">
+                    <label for="contact-person">联系人 <span>*</span></label>
+                    <input type="text" id="contact-person" name="contact-person" placeholder="请输入联系人姓名" required>
+                </div>
+                <div class="form-group">
+                    <label for="contact-phone">联系电话 <span>*</span></label>
+                    <input type="tel" id="contact-phone" name="contact-phone" placeholder="请输入联系人电话" required>
+                </div>
+                <button type="submit" class="submit-btn">提交信息</button>
+            </form>
+        </div>
+
+        <div class="success-container" id="success-container">
+            <div class="success-icon">✓</div>
+            <h2>提交成功！</h2>
+            <p>您的节目信息已成功提交，感谢您的参与！</p>
+        </div>
+    </div>
+
+    <script>
+        // Google Sheets 配置 - 使用 Google Apps Script Web App
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEfM8-gD7Wg7jA4QOn0pbEO_s5iRc9kB0RxkGmiIoHMyU8mRRriTBUtiSCcZtWvv6E/exec';
+
+        document.getElementById('program-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const micChecked = document.querySelector('input[name="need-microphone"]:checked');
+            if (!micChecked) { alert('请选择是否需要话筒！'); return; }
+
+            const formData = {
+                teamName: document.getElementById('team-name').value.trim(),
+                programType: document.getElementById('program-type').value,
+                programName: document.getElementById('program-name').value.trim(),
+                programDuration: document.getElementById('program-duration').value.trim(),
+                performerCount: document.getElementById('performer-count').value,
+                needMicrophone: micChecked.value,
+                instructor: document.getElementById('instructor').value.trim() || '无',
+                contactPerson: document.getElementById('contact-person').value.trim(),
+                contactPhone: document.getElementById('contact-phone').value.trim(),
+                submitTime: new Date().toLocaleString('zh-CN')
+            };
+
+            if (!formData.teamName || !formData.programType || !formData.programName ||
+                !formData.programDuration || !formData.performerCount ||
+                !formData.contactPerson || !formData.contactPhone) {
+                alert('请填写所有必填字段！');
+                return;
+            }
+
+            try {
+                // 使用 GET 请求通过 GAS Web App 提交数据（GAS doGet 天然支持跨域）
+                const params = new URLSearchParams({
+                    action: 'add',
+                    data: JSON.stringify(formData)
+                });
+                const url = `${SCRIPT_URL}?${params.toString()}`;
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.status !== 'ok') {
+                    throw new Error(result.message || '提交失败');
+                }
+
+                document.getElementById('form-container').style.display = 'none';
+                document.getElementById('success-container').style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                alert('提交过程中出现错误，请检查网络连接后重试！');
+            }
+        });
+    </script>
+</body>
+</html>
